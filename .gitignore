@@ -1,0 +1,5 @@
+*.log
+.next
+.env
+node_modules
+out
