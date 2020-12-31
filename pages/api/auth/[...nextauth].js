@@ -9,24 +9,15 @@ import prisma from 'lib/prisma'
 const options = {
   callbacks: {
     jwt: async (token, user, account, profile) => {
-      // TODO: this is half-baked!
       if (!!user) {
         token.name = profile.name
         token.picture = profile.avatar_url
         token.email = profile.email
-        token.user_plan = user.active_plan
-        token.user_id = user.userId
+        token.userId = user.userId
         token.github_access_token = account.accessToken
       }
 
       return Promise.resolve(token)
-    },
-    session: async (session, user) => {
-      // TODO: this is half-baked!
-      session.user.github_access_token = user.github_access_token
-      session.user.user_id = user.user_id
-
-      return Promise.resolve(session)
     },
   },
   session: {
