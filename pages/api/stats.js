@@ -1,12 +1,9 @@
-import jwt from 'next-auth/jwt'
-
 import prisma from 'lib/prisma'
-
-import { JWT_SECRET } from 'utils/env'
+import getToken from 'utils/getToken'
 
 export default async function (req, res) {
-  const token = await jwt.getToken({ req, secret: JWT_SECRET })
-  const userId = token.user_id
+  const token = await getToken(req)
+  const userId = token.userId
 
   if (!userId) {
     res.status(404).send({
