@@ -7,32 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum DeploymentStatus {
-  NOT_READY
-  READY
-  BUILDING
-  CANCELLED
-  FAILED
-}
-
-enum ProjectType {
-  STATIC
-  DYNAMIC
-}
-
-enum Plan {
-  OSS
-  PRO
-}
-
-// this is VIEW, check sql/view_user_stats.sql
+/// 
 model user_stats {
   id               String @unique
   totalProjects    Int    @map("total_projects")
   totalDeployments Int    @map("total_deployments")
   activePlan       Plan   @map("active_plan")
-
-  @@map("user_stats")
 }
 
 model Account {
@@ -63,8 +43,8 @@ model User {
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @default(now()) @map("updated_at")
   activePlan    Plan         @default(OSS) @map("active_plan")
-  Project       Project[]
   Deployment    Deployment[]
+  Project       Project[]
 
   @@map("users")
 }
@@ -86,14 +66,14 @@ model Project {
   createdAt                  DateTime    @default(now()) @map("created_at")
   updatedAt                  DateTime    @default(now()) @map("updated_at")
   type                       ProjectType @default(STATIC)
-  latestSuccessfulDeployment Deployment?
   repoURL                    String      @map("repo_url")
   buildCommand               String      @map("build_command")
   buildOutput                String      @default("public") @map("build_output")
-  builder                    String      @default("nodejs:12.4.0") @map("builder")
+  builder                    String      @default("nodejs:12.4.0")
   packageManager             String?     @default("npm") @map("package_manager")
-  owner                      User        @relation(fields: [ownerUserId], references: [id])
   ownerUserId                String      @map("owner_user_id")
+  owner                      User        @relation(fields: [ownerUserId], references: [id])
+  latestSuccessfulDeployment Deployment?
 
   @@index([name], name: "projectName")
   @@map("projects")
@@ -101,12 +81,30 @@ model Project {
 
 model Deployment {
   id          String           @id @default(cuid())
-  project     Project          @relation(fields: [projectId], references: [id])
-  projectId   String           @map("project_id")
-  owner       User             @relation(fields: [ownerUserId], references: [id])
+  projectId   String           @unique @map("project_id")
   ownerUserId String           @map("owner_user_id")
   status      DeploymentStatus @default(NOT_READY)
+  owner       User             @relation(fields: [ownerUserId], references: [id])
+  project     Project          @relation(fields: [projectId], references: [id])
 
   @@index([projectId], name: "deployment_project_id")
   @@map("deployments")
+}
+
+enum DeploymentStatus {
+  NOT_READY
+  READY
+  BUILDING
+  CANCELLED
+  FAILED
+}
+
+enum ProjectType {
+  STATIC
+  DYNAMIC
+}
+
+enum Plan {
+  OSS
+  PRO
 }
